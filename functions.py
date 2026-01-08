@@ -119,10 +119,7 @@ def hypersolid_duocylinder(x, y, z, w):
 def hypersolid_klein_bottle(x, y, z, w):
     """Klein bottle embedded in 4D
     
-    The Klein bottle is a non-orientable surface that cannot be embedded
-    in 3D without self-intersection, but can be properly embedded in 4D.
-    
-    This uses the "figure-8" parameterization lifted to 4D:
+    This uses the "figure-8" parameterisation lifted to 4D:
     The implicit form is derived from the parametric equations:
         x = (a + b*cos(v)) * cos(u)
         y = (a + b*cos(v)) * sin(u)
@@ -134,58 +131,42 @@ def hypersolid_klein_bottle(x, y, z, w):
     a = 1.0  # Major radius
     b = 0.4  # Tube radius
     
-    # Convert to cylindrical-like coordinates for the main torus direction
     r_xy = np.sqrt(x**2 + y**2)
     theta = np.arctan2(y, x)
     
-    # The Klein bottle has a half-twist, so the tube rotates by π as we go around
-    # This is captured by the relationship between (z, w) and theta
     half_theta = theta / 2
     
-    # Rotate (z, w) back by half_theta to "untwist"
     z_rot = z * np.cos(half_theta) + w * np.sin(half_theta)
     w_rot = -z * np.sin(half_theta) + w * np.cos(half_theta)
     
-    # Now measure distance to a standard torus in the (r_xy, z_rot) plane
-    # with the w_rot direction being the "thickness"
     dist_to_circle = np.sqrt((r_xy - a)**2 + z_rot**2) - b
-    
-    # Include w_rot in the distance calculation
+
     return dist_to_circle**2 + w_rot**2 - (b * 0.3)**2
 
-
-def hypersolid_klein_bottle_v2(x, y, z, w):
-    """Klein bottle - alternative formulation
-    
-    This version uses a different implicit equation that produces
-    a cleaner Klein bottle shape in 4D cross-sections.
+def hypersolid_klein_bottlev2(x, y, z, w):
+    """Klein bottle embedded in 4D - alternate
     """
-    # Parameters
-    R = 1.0   # Major radius
-    r = 0.35  # Tube radius
+    a = 2.0  # Scale of the bottle
+    b = 1.0  # Width of the tube
     
-    # Compute angle around the main axis
-    theta = np.arctan2(y, x)
+    u = np.arctan2(z, x)
     
-    # Distance from z-axis in xy-plane
-    rho = np.sqrt(x**2 + y**2)
+    rxz = np.sqrt(x**2 + z**2)
     
-    # The Klein bottle twists by 180° as we go around
-    # Apply the half-angle twist to the (z, w) coordinates
-    cos_ht = np.cos(theta / 2)
-    sin_ht = np.sin(theta / 2)
+    R = a * (1.0 + 0.5 * np.cos(u))
     
-    # Untwisted coordinates
-    z_u = z * cos_ht + w * sin_ht
-    w_u = -z * sin_ht + w * cos_ht
+    twist_angle = u / 2.0
     
-    # Distance to the central circle of radius R in the xy-plane
-    # measured in the (rho, z_u) plane, with w_u as offset
-    circle_dist = (rho - R)**2 + z_u**2
+    dx = rxz - R
     
-    # Implicit surface: tube of radius r around the twisted circle
-    # The w_u term creates the 4D embedding
-    return circle_dist + w_u**2 - r**2
+    cos_t = np.cos(twist_angle)
+    sin_t = np.sin(twist_angle)
+    y_twisted = y * cos_t - w * sin_t
+    w_twisted = y * sin_t + w * cos_t
+    
+    cross_section = dx**2 + y_twisted**2 - b**2
+    
+    return cross_section + w_twisted**2 * 0.5
 
 
 # =============================================================================
@@ -218,5 +199,5 @@ HYPERSOLIDS: Dict[int, Tuple[Callable, str, str, Tuple[float, float], Tuple[floa
     5: (hypersolid_complex, "Complex 4D", "sin(x)cos(y)+sin(z)cos(w)=0.5", (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)),
     6: (hypersolid_hypercube, "4D Hypercube", "max(|x|,|y|,|z|,|w|)=1", (-1.8, 1.8), (-1.8, 1.8), (-1.8, 1.8), (-1.8, 1.8)),
     7: (hypersolid_duocylinder, "Duocylinder", "max(x²+y²,z²+w²)=R²", (-2, 2), (-2, 2), (-2, 2), (-2, 2)),
-    8: (hypersolid_klein_bottle, "Klein Bottle", "4D embedded Klein bottle", (-2, 2), (-2, 2), (-1.5, 1.5), (-1.5, 1.5)),
+    8: (hypersolid_klein_bottlev2, "Klein Bottle", "4D figure-8 Klein bottle", (-4, 4), (-2.5, 2.5), (-4, 4), (-2.5, 2.5)),
 }

@@ -347,8 +347,8 @@ def marching_cubes(scalar_field: np.ndarray, threshold: float,
                     scalar_field[i, j+1, k+1]
                 ]
                 
-                # Skip if any NaN
-                if any(np.isnan(v) for v in cube_vals):
+                # Skip if any NaN or inf (not finite)
+                if any(not np.isfinite(v) for v in cube_vals):
                     continue
                 
                 # Calculate cube index
